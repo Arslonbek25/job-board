@@ -1,8 +1,28 @@
 import JobListing from "./JobListing";
-import jobs from "../jobs.json";
+import { useEffect } from "react";
+import { useState } from "react";
 
 const JobListings = ({ isHome = false }) => {
-	const jobList = isHome ? jobs.jobs.slice(0, 3) : jobs.jobs;
+	const [jobs, setJobs] = useState([]);
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		const fetchJobs = async () => {
+			try {
+				const res = await fetch("http://localhost:8000/jobs");
+				const data = await res.json();
+				setJobs(data);
+			} catch (err) {
+				console.log("err fetching", err);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchJobs();
+	}, []);
+
+	const jobList = isHome ? jobs.slice(0, 3) : jobs;
 
 	return (
 		<section className="bg-blue-50 px-4 py-10">
@@ -11,9 +31,15 @@ const JobListings = ({ isHome = false }) => {
 					{isHome ? "Featured Jobs" : "All Job Listings"}
 				</h2>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					{jobList.map(job => (
-						<JobListing key={job.id} job={job} />
-					))}
+					{loading ? (
+						<h2>Loading...</h2>
+					) : (
+						<>
+							{jobList.map(job => (
+								<JobListing key={job.id} job={job} />
+							))}
+						</>
+					)}
 				</div>
 			</div>
 		</section>
